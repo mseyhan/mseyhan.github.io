@@ -1,8 +1,0 @@
----
-title: "Welcome To My Blog 2"
-author: "Murat Seyhan"
-date: "2025-01-16"
-categories: [news, hosgeldin]
----
-
-Welcome 2

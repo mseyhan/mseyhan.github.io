@@ -3,14 +3,13 @@ project:
   output-dir: docs
 
 website:
-  title: "Murat Seyhan"
   navbar:
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/
+        href: https://github.com/mseyhan
       - icon: twitter
-        href: https://twitter.com
+        href: https://twitter.com/false9ry
 format:
   html:
     theme: cosmo

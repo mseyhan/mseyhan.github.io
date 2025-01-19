@@ -1,6 +1,6 @@
 ---
 title: "Welcome To My Blog"
-author: "Tristan O'Malley"
+author: "Murat Seyhan"
 date: "2025-01-16"
 categories: [news]
 ---
