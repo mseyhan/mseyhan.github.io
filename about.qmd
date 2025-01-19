@@ -2,7 +2,7 @@
 title: "About"
 image: profile.jpeg
 about:
-  template: jolla
+  template: solana
   links:
     - icon: twitter
       text: Twitter
@@ -16,4 +16,23 @@ about:
 
 ---
 
-About this blog
+Hi, I’m **Murat Seyhan**, a data scientist with a passion for the sea. I’ve always believed that life is a blend of structure and flow, much like the balance between my gusto for data and the open sea. Let me introduce myself in a few words.
+
+### **DATA SCIENCE**
+
+Professionally, I'm a **Data Scientist**, where I’ve specialized in discovering patterns in chaos. Essentially it's really just a fancy way of saying I help make sense of things that seem too big or complicated for our intuition. From predictive analytics to crafting intuitive dashboards, I’ve always sought to make complex data tell a clear story. Along the way, I’ve had the chance to work on projects that transformed raw numbers into actionable insights, gaining valuable experience at organizations like Garanti BBVA and KPMG.
+
+### **FOOTBALL ANALYTICS**
+
+One of my recent passions is **football analytics**. Using Python, I dive into match data to **uncover insights** and **create visualizations**. I’m working on ways to bring these analyses to a wider audience, bringing together my interest in sports and data.
+
+### **SAILING ADVENTURES**
+
+During my university years, I found myself not just studying Economics but also drawn to the allure of the sea. I worked as a **sailing instructor**, teaching students of all levels—from beginners to competitive racers—how to handle boats and embrace the wind. This role was deeply fulfilling, combining my love for the sport with the joy of teaching. At the same time, I founded a **Sailing Club**, creating a vibrant community of students who bonded over the wind and waves. Leading a community of students to bond over the wind and waves was a defining experience—teaching and learning from others, both on the water and off.
+
+### MUSIC & CREATIVITY
+
+When I’m not immersed in data or the sea, I turn to music for a creative outlet. Playing the guitar, performing live, or producing melodies has been a part of my life since 2014. It’s my way of **expressing creativity** and **connecting with others**.
+
+This is me in a snapshot—someone who finds joy in analyzing data, navigating the seas, creating music, and exploring football through numbers. If any of this resonates, I’d love to connect and share more!
+

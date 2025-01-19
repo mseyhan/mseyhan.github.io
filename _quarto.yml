@@ -9,6 +9,8 @@ website:
       - about.qmd
       - icon: github
         href: https://github.com/mseyhan
+      - icon: linkedin
+        href: https://linkedin.com/in/muratseyhan
       - icon: twitter
         href: https://twitter.com/false9ry
 format:
