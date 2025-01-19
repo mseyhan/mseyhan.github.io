@@ -13,6 +13,10 @@ about:
     - icon: github
       text: Github
       href: https://github.com/mseyhan
+og:
+  image: "https://mseyhan.github.io/images/profile.jpeg"
+  title: "About – Murat Seyhan"
+  description: "About me."
 ---
 
 Hi, I’m **Murat Seyhan**, a data scientist with a passion for the sea. I’ve always believed that life is a blend of structure and flow, much like the balance between my gusto for data and the open sea. Let me introduce myself in a few words.
