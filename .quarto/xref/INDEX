@@ -13,5 +13,11 @@
   },
   "posts/welcome_2/index.qmd": {
     "index.html": "47bb6729"
+  },
+  "posts/regression_mean/regression_to_the_mean.ipynb": {
+    "regression_to_the_mean.html": "4caa3fe8"
+  },
+  "posts/regression_mean/try.ipynb": {
+    "try.html": "b16276e2"
   }
 }
