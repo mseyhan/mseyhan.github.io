@@ -18,8 +18,9 @@
   }
 
   function buildPath(basePath, relative, keepSlash) {
+    const cleanedBase = basePath.endsWith("/") ? basePath : `${basePath}/`;
     const cleanedRelative = stripLeadingSlash(relative);
-    const url = new URL(cleanedRelative || ".", window.location.origin + basePath);
+    const url = new URL(cleanedRelative || ".", window.location.origin + cleanedBase);
     let out = url.pathname;
     if (keepSlash && !out.endsWith("/")) out += "/";
     if (!keepSlash && out !== "/" && out.endsWith("/")) out = out.replace(/\/$/, "");
@@ -28,21 +29,23 @@
 
   function toTR(pathname) {
     const basePath = getBasePath();
+    const enBase = basePath.endsWith("/tr/") ? basePath.replace(/\/tr\/$/, "/") : basePath;
     const current = normalizePath(pathname);
     const trailingSlash = current.endsWith("/");
-    const relative = stripLeadingSlash(current.startsWith(basePath) ? current.slice(basePath.length) : current);
+    const relative = stripLeadingSlash(current.startsWith(enBase) ? current.slice(enBase.length) : current);
     if (relative.startsWith("tr/")) return current;
-    return buildPath(basePath, `tr/${relative}`, true);
+    return buildPath(enBase, `tr/${relative}`, true);
   }
 
   function toEN(pathname) {
     const basePath = getBasePath();
+    const enBase = basePath.endsWith("/tr/") ? basePath.replace(/\/tr\/$/, "/") : basePath;
     const current = normalizePath(pathname);
     const trailingSlash = current.endsWith("/");
-    const relative = stripLeadingSlash(current.startsWith(basePath) ? current.slice(basePath.length) : current);
+    const relative = stripLeadingSlash(current.startsWith(enBase) ? current.slice(enBase.length) : current);
     if (!relative.startsWith("tr/")) return current;
     const newRelative = relative.replace(/^tr\/?/, "");
-    return buildPath(basePath, newRelative, trailingSlash || newRelative === "");
+    return buildPath(enBase, newRelative, trailingSlash || newRelative === "");
   }
 
   function init() {
