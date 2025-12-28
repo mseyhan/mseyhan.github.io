@@ -1,15 +1,9 @@
 project:
   type: website
-  output-dir: docs
+  output-dir: ../docs/tr
   render:
     - "*.qmd"
     - "posts/**"
-    - "!tr/**"
-
-  resources:
-    - assets/lang-toggle.js
-    - _includes/lang-toggle.html
-
 
 website:
   title: "Murat Seyhan, Data Scientist"
@@ -17,17 +11,17 @@ website:
     right:
       - about.qmd
       - href: "#"
-        text: TR   # <-- JS bunu gerçek linke çevirecek
+        text: EN   # <-- JS bunu gerçek linke çevirecek
       - icon: github
         href: https://github.com/mseyhan
       - icon: linkedin
         href: https://linkedin.com/in/muratseyhan
       - icon: twitter
         href: https://twitter.com/false9ry
-  favicon: favicon.ico
+  favicon: ../../favicon.ico
   open-graph: true
 
-lang: en
+lang: tr
 
 format:
   html:
@@ -36,7 +30,7 @@ format:
       dark: darkly
     include-after-body:
       - assets/lang-toggle.js
-    css: styles.css
+    css: ../styles.css
     include-in-header:
-      - lang-toggle.html
+      - ../lang-toggle.html
 
