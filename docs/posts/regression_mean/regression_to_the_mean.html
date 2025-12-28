@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Murat Seyhan">
+<meta name="description" content="Extreme performances catch headlines. But behind the highs and lows lies a quieter truth: randomness. This post unpacks how regression to the mean fools fans, coaches, and analysts — and how to see through the illusion.">
+
+<title>The Illusion of Form: Regression to the Mean in Football – Murat Seyhan, Data Scientist</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.ico" rel="icon">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script>
+  (() => {
+    const offsetMeta = document.querySelector('meta[name="quarto:offset"]');
+    const offset = (offsetMeta?.getAttribute("content") || "").trim();
+    const prefix = offset || "./";
+
+    const script = document.createElement("script");
+    script.src = `${prefix}assets/lang-toggle.js`;
+    document.head.appendChild(script);
+  })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="The Illusion of Form: Regression to the Mean in Football – Murat Seyhan, Data Scientist">
+<meta property="og:description" content="Extreme performances catch headlines. But behind the highs and lows lies a quieter truth: randomness. This post unpacks how regression to the mean fools fans, coaches, and analysts — and how to see through the illusion.">
+<meta property="og:image" content="regression_to_the_mean_files/figure-html/cell-4-output-1.png">
+<meta property="og:site_name" content="Murat Seyhan, Data Scientist">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Murat Seyhan, Data Scientist</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../#"> 
+<span class="menu-text">TR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mseyhan"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/muratseyhan"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/false9ry"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-page-left">
+      <h1 class="title">The Illusion of Form: Regression to the Mean in Football</h1>
+                  <div>
+        <div class="description">
+          Extreme performances catch headlines. But behind the highs and lows lies a quieter truth: randomness. This post unpacks how regression to the mean fools fans, coaches, and analysts — and how to see through the illusion.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">Football Analytics</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta column-page-left">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Murat Seyhan </p>
+            </div>
+    </div>
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">🧠 Introduction</a>
+  <ul class="collapse">
+  <li><a href="#we-crave-stories-but-randomness-writes-the-script" id="toc-we-crave-stories-but-randomness-writes-the-script" class="nav-link" data-scroll-target="#we-crave-stories-but-randomness-writes-the-script">We Crave Stories — But Randomness Writes the Script</a></li>
+  </ul></li>
+  <li><a href="#what-is-regression-to-the-mean" id="toc-what-is-regression-to-the-mean" class="nav-link" data-scroll-target="#what-is-regression-to-the-mean">📊 What Is Regression to the Mean?</a>
+  <ul class="collapse">
+  <li><a href="#the-stats-behind-the-narrative-we-keep-misreading" id="toc-the-stats-behind-the-narrative-we-keep-misreading" class="nav-link" data-scroll-target="#the-stats-behind-the-narrative-we-keep-misreading">The Stats Behind the Narrative We Keep Misreading</a></li>
+  </ul></li>
+  <li><a href="#simulation-building-a-synthetic-season" id="toc-simulation-building-a-synthetic-season" class="nav-link" data-scroll-target="#simulation-building-a-synthetic-season">Simulation: Building a Synthetic Season</a>
+  <ul class="collapse">
+  <li><a href="#performance-skill-luck" id="toc-performance-skill-luck" class="nav-link" data-scroll-target="#performance-skill-luck">Performance = Skill + Luck</a></li>
+  </ul></li>
+  <li><a href="#first-half-snapshot" id="toc-first-half-snapshot" class="nav-link" data-scroll-target="#first-half-snapshot">First-Half Snapshot</a>
+  <ul class="collapse">
+  <li><a href="#dots-that-deceive-judging-from-one-half" id="toc-dots-that-deceive-judging-from-one-half" class="nav-link" data-scroll-target="#dots-that-deceive-judging-from-one-half">Dots That Deceive — Judging from One Half</a></li>
+  <li><a href="#first-half-narratives-exceptional-average-bench-him" id="toc-first-half-narratives-exceptional-average-bench-him" class="nav-link" data-scroll-target="#first-half-narratives-exceptional-average-bench-him">First-Half Narratives: “Exceptional!” “Average…” “Bench him!”</a>
+  <ul class="collapse">
+  <li><a href="#reveal-second-half-performance-when-the-curtain-drops-reality-check" id="toc-reveal-second-half-performance-when-the-curtain-drops-reality-check" class="nav-link" data-scroll-target="#reveal-second-half-performance-when-the-curtain-drops-reality-check">Reveal: Second-Half Performance | When the Curtain Drops — Reality Check</a></li>
+  <li><a href="#turns-out-the-story-changes" id="toc-turns-out-the-story-changes" class="nav-link" data-scroll-target="#turns-out-the-story-changes">Turns Out, the Story Changes…</a></li>
+  </ul></li>
+  <li><a href="#arrows-that-regress" id="toc-arrows-that-regress" class="nav-link" data-scroll-target="#arrows-that-regress">Arrows That Regress</a>
+  <ul class="collapse">
+  <li><a href="#how-everyone-moves-closer-to-the-mean" id="toc-how-everyone-moves-closer-to-the-mean" class="nav-link" data-scroll-target="#how-everyone-moves-closer-to-the-mean">How Everyone Moves Closer to the Mean</a></li>
+  </ul></li>
+  <li><a href="#regression-check-a-slope-that-reveals-the-pull" id="toc-regression-check-a-slope-that-reveals-the-pull" class="nav-link" data-scroll-target="#regression-check-a-slope-that-reveals-the-pull">Regression Check: A Slope That Reveals the Pull</a></li>
+  </ul></li>
+  <li><a href="#real-world-players-simulated-stories-better-internalization" id="toc-real-world-players-simulated-stories-better-internalization" class="nav-link" data-scroll-target="#real-world-players-simulated-stories-better-internalization">Real-World Players, Simulated Stories, Better Internalization</a></li>
+  <li><a href="#cognitive-bias-narrative-causality" id="toc-cognitive-bias-narrative-causality" class="nav-link" data-scroll-target="#cognitive-bias-narrative-causality">Cognitive Bias: Narrative Causality</a>
+  <ul class="collapse">
+  <li><a href="#why-we-see-meaning-where-theres-just-math" id="toc-why-we-see-meaning-where-theres-just-math" class="nav-link" data-scroll-target="#why-we-see-meaning-where-theres-just-math">Why We See Meaning Where There’s Just Math</a></li>
+  </ul></li>
+  <li><a href="#reverse-perspective-second-half-first" id="toc-reverse-perspective-second-half-first" class="nav-link" data-scroll-target="#reverse-perspective-second-half-first">Reverse Perspective: Second Half First</a>
+  <ul class="collapse">
+  <li><a href="#flip-the-script-the-pattern-holds" id="toc-flip-the-script-the-pattern-holds" class="nav-link" data-scroll-target="#flip-the-script-the-pattern-holds">Flip the Script — The Pattern Holds</a></li>
+  </ul></li>
+  <li><a href="#reflection-and-final-thoughts" id="toc-reflection-and-final-thoughts" class="nav-link" data-scroll-target="#reflection-and-final-thoughts">Reflection and Final Thoughts</a>
+  <ul class="collapse">
+  <li><a href="#the-most-honest-stories-arent-about-extremes" id="toc-the-most-honest-stories-arent-about-extremes" class="nav-link" data-scroll-target="#the-most-honest-stories-arent-about-extremes">The Most Honest Stories Aren’t About Extremes</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+
+
+
+
+
+<section id="introduction" class="level1">
+<h1>🧠 Introduction</h1>
+<section id="we-crave-stories-but-randomness-writes-the-script" class="level3">
+<h3 class="anchored" data-anchor-id="we-crave-stories-but-randomness-writes-the-script">We Crave Stories — But Randomness Writes the Script</h3>
+<p>There is an evident statistical regularity hidden in plain sight — one that, when ignored, quietly shapes football narratives, fuels misjudgments, and silently distorts careers: <strong>regression to the mean</strong>.</p>
+<p>If you’re a football fan, like me — since the beginning of my childhood — big effect of my grandfather being a fan and serving on the council committee of <a href="https://x.com/siyahbeyazarsiv/status/1372974851519037448"><em>Beşiktaş JK</em></a>. And if you’re a football fan, with the pull of confirmation bias, you’re often inclined to validate your team’s decisions, even when they’re performing bad. You see what you hope to see. Or sometimes you’re affected by the crowd’s opinion, and make up stories about the bad performance, usually ends up finding a scapegoat, perfect fit for the situation. And boo him/her, maybe?</p>
+<p>And in most football clubs — especially the ones that are not data-driven or digital-native (which is most of them, outside the privileged few) — the decision-making at the management level is often no different from that of the fans. In some contexts, it may even be worse.</p>
+<p>They, too, seek causality. They crave a clean narrative, and illuminate the ambiguity. But football doesn’t always offer causal clarity. And in that search for meaning, we often miss what’s actually going on: plain old randomness. It shows up looking like form, momentum, or a player in decline — but it’s just luck, really.</p>
+<p>This post is about that hidden force — how it works, how it deceives us, and how it affects players, coaches, analysts, and fans alike.</p>
+<p>With a simple simulation, some stats, and a bit of honest thinking about how we judge performances, we’re going to break down how luck often looks like talent or failure. And how regression to the mean offers a much-needed antidote.</p>
+<p>Let’s begin there.</p>
+</section>
+</section>
+<section id="what-is-regression-to-the-mean" class="level1">
+<h1>📊 What Is Regression to the Mean?</h1>
+<section id="the-stats-behind-the-narrative-we-keep-misreading" class="level3">
+<h3 class="anchored" data-anchor-id="the-stats-behind-the-narrative-we-keep-misreading">The Stats Behind the Narrative We Keep Misreading</h3>
+<blockquote class="blockquote">
+<p>Regression to the mean refers to the tendency for an unusually high or low measurement to be followed by one that is closer to the average.</p>
+</blockquote>
+<p><strong>Regression to the mean</strong> is a statistical principle that explains how extreme performances — whether good or bad — are likely to be followed by more average ones. Not because the player necessarily changed, but because the original extreme performance was at least partially due to <strong>chance</strong>.</p>
+<p>In football context, it doesn’t imply that <strong>skill disappears</strong> or <strong>suddenly changes</strong> — just that outliers are often products of both true ability and <strong>random fluctuations</strong>. And randomness has a way of balancing itself out.</p>
+<p>Our brain is a <strong>causality machine</strong>. We hate things we can’t form causal relationships with. Whenever we see outstanding or disastrous performances, our minds activate to seek some causal explanation.</p>
+<p>But in some cases — like the ones we’ll explore — <strong>there’s no such explanation nor a narrative</strong>.</p>
+<p>Let’s try to simplify the context and run a modest simulation to better understand and visualise this ubiquitous statistical phenomenon that our brains refuse to internalise each time.</p>
+<hr>
+</section>
+</section>
+<section id="simulation-building-a-synthetic-season" class="level1">
+<h1>Simulation: Building a Synthetic Season</h1>
+<section id="performance-skill-luck" class="level3">
+<h3 class="anchored" data-anchor-id="performance-skill-luck">Performance = Skill + Luck</h3>
+<p>To understand regression to the mean in action, we’ll build a simple simulation with 100 football players. Each of them has an underlying <strong>true skill level</strong>, which stays stable throughout the season, as an assumption. But performance in any given match isn’t just about skill — it’s also shaped by <strong>random factors</strong>: weather, team tactics, referee decisions, opponent strength, even the player’s mood…</p>
+<blockquote class="blockquote">
+<p>💬 <em>“What has mood to do with it? You fight when the necessity arises—no matter the mood! Mood’s a thing for cattle or making love or playing the baliset.”</em><br>
+— <strong>Gurney Halleck</strong>, <em>Dune</em></p>
+</blockquote>
+<p>In Herbert’s Dune, maybe by the year 10191 maybe humanity will clarify what’s luck in most contexts. But nowadays because it’s so random and it’s beyond our mind’s capabilities we have words for the things we’re unable to grasp in detail. In statistical sense, you can call it <strong>noise</strong> but I’ll stick to a colloquial word and just call it plain <strong>luck</strong>.</p>
+<p>That’s what makes evaluating players so tricky. A single game or a few might reflect as much <strong>randomness</strong> as it does <strong>ability</strong>.</p>
+<p>In this simulation:</p>
+<ul>
+<li><code>true_skill</code> represents each player’s consistent ability.</li>
+<li><code>performance_noise</code> models the randomness from match to match.</li>
+<li>We simulate <strong>two periods</strong> (e.g., first half and second half of the season) and calculate the player’s rating as: <span class="math display">\[
+\text{rating} = \text{true skill} + \text{luck}
+\]</span></li>
+<li>To keep things realistic, we <strong>clip</strong> ratings between 4 and 10 — mimicking how football ratings often work in media and analytics platforms.</li>
+</ul>
+<p>This simulation helps us visualize how <strong>players who seem “in form” or “out of form” may just be experiencing natural statistical fluctuations</strong> — not actual shifts in talent or effort.</p>
+<p>Let’s generate the data:</p>
+<div id="b9f77255" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> cm</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Data Generation ---</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">1903</span>) <span class="co"># bjk</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>n_players <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>true_skill <span class="op">=</span> np.random.normal(loc<span class="op">=</span><span class="fl">6.2</span>, scale<span class="op">=</span><span class="fl">0.4</span>, size<span class="op">=</span>n_players)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>performance_noise <span class="op">=</span> np.random.normal(loc<span class="op">=</span><span class="dv">0</span>, scale<span class="op">=</span><span class="fl">1.02</span>, size<span class="op">=</span>(n_players, <span class="dv">2</span>))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>ratings <span class="op">=</span> true_skill.reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>) <span class="op">+</span> performance_noise</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>ratings <span class="op">=</span> np.clip(ratings, <span class="dv">4</span>, <span class="dv">10</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Player'</span>: [<span class="ss">f'Player </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_players)],</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'true_skill'</span>: true_skill,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">'rating_fh'</span>: ratings[:, <span class="dv">0</span>],</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">'rating_sh'</span>: ratings[:, <span class="dv">1</span>]</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>To identify extreme performances, we standardize the match ratings using <strong>z-scores</strong> — measuring how far each player’s rating deviates from the mean. We also calculate the <strong>absolute z-scores</strong> to find players closest to the average. This helps us group players into outliers (top, bottom) and typical performers.</p>
+<div id="09a23ffe" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Metrics and Z-Scores ---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'z_fh'</span>] <span class="op">=</span> zscore(df[<span class="st">'rating_fh'</span>])</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'z_sh'</span>] <span class="op">=</span> zscore(df[<span class="st">'rating_sh'</span>])</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'abs_z_fh'</span>] <span class="op">=</span> df[<span class="st">'z_fh'</span>].<span class="bu">abs</span>()</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'abs_z_sh'</span>] <span class="op">=</span> df[<span class="st">'z_sh'</span>].<span class="bu">abs</span>()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Player</th>
+<th data-quarto-table-cell-role="th">true_skill</th>
+<th data-quarto-table-cell-role="th">rating_fh</th>
+<th data-quarto-table-cell-role="th">rating_sh</th>
+<th data-quarto-table-cell-role="th">z_fh</th>
+<th data-quarto-table-cell-role="th">z_sh</th>
+<th data-quarto-table-cell-role="th">abs_z_fh</th>
+<th data-quarto-table-cell-role="th">abs_z_sh</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Player 1</td>
+<td>6.101051</td>
+<td>5.929413</td>
+<td>5.985455</td>
+<td>-0.305738</td>
+<td>-0.327427</td>
+<td>0.305738</td>
+<td>0.327427</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Player 2</td>
+<td>6.409244</td>
+<td>6.000632</td>
+<td>7.626949</td>
+<td>-0.248300</td>
+<td>1.196627</td>
+<td>0.248300</td>
+<td>1.196627</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Player 3</td>
+<td>6.577203</td>
+<td>8.158082</td>
+<td>8.206432</td>
+<td>1.491674</td>
+<td>1.734651</td>
+<td>1.491674</td>
+<td>1.734651</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Player 4</td>
+<td>5.098973</td>
+<td>5.548365</td>
+<td>4.241321</td>
+<td>-0.613051</td>
+<td>-1.946776</td>
+<td>0.613051</td>
+<td>1.946776</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Player 5</td>
+<td>5.607759</td>
+<td>5.182377</td>
+<td>5.234082</td>
+<td>-0.908219</td>
+<td>-1.025043</td>
+<td>0.908219</td>
+<td>1.025043</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">95</th>
+<td>Player 96</td>
+<td>6.050932</td>
+<td>6.890647</td>
+<td>7.597617</td>
+<td>0.469493</td>
+<td>1.169393</td>
+<td>0.469493</td>
+<td>1.169393</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">96</th>
+<td>Player 97</td>
+<td>6.513076</td>
+<td>7.700980</td>
+<td>7.368306</td>
+<td>1.123023</td>
+<td>0.956488</td>
+<td>1.123023</td>
+<td>0.956488</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">97</th>
+<td>Player 98</td>
+<td>6.082399</td>
+<td>5.964342</td>
+<td>7.386224</td>
+<td>-0.277568</td>
+<td>0.973124</td>
+<td>0.277568</td>
+<td>0.973124</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">98</th>
+<td>Player 99</td>
+<td>6.598208</td>
+<td>7.423891</td>
+<td>4.183947</td>
+<td>0.899552</td>
+<td>-2.000046</td>
+<td>0.899552</td>
+<td>2.000046</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">99</th>
+<td>Player 100</td>
+<td>6.168094</td>
+<td>6.629178</td>
+<td>6.255803</td>
+<td>0.258620</td>
+<td>-0.076421</td>
+<td>0.258620</td>
+<td>0.076421</td>
+</tr>
+</tbody>
+</table>
+
+<p>100 rows × 8 columns</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="first-half-snapshot" class="level1">
+<h1>First-Half Snapshot</h1>
+<section id="dots-that-deceive-judging-from-one-half" class="level2">
+<h2 class="anchored" data-anchor-id="dots-that-deceive-judging-from-one-half">Dots That Deceive — Judging from One Half</h2>
+<p>Below, we’ve plotted ratings from the first half of the season for three distinct groups of players:</p>
+<ul>
+<li>🟢 Top Performers (highest ratings, seemingly exceptional talent)</li>
+<li>🔵 Average Performers (ratings around the mean, reliably consistent)</li>
+<li>🔴 Worst Performers (lowest ratings, seemingly struggling players)</li>
+</ul>
+<p>Each dot represents a player’s rating. The dashed gray line shows the overall average rating (6.89).</p>
+<div id="84b2ba73" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot ---</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, best_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">False</span>, cmap<span class="op">=</span>cm.Greens, norm<span class="op">=</span>norm)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, worst_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">False</span>, cmap<span class="op">=</span>cm.Reds, norm<span class="op">=</span>norm)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, avg_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">False</span>, cmap<span class="op">=</span>cm.Blues, norm<span class="op">=</span>norm)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ax.axhline(fh_mean, linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linewidth<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">2.05</span>, fh_mean <span class="op">+</span> <span class="fl">0.1</span>, <span class="ss">f'First Half Mean: </span><span class="sc">{</span>fh_mean<span class="sc">:.2f}</span><span class="ss">'</span>, color<span class="op">=</span><span class="st">'gray'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Regression to the Mean</span><span class="ch">\n</span><span class="st">(First Half Perspective), with dots'</span>, fontsize<span class="op">=</span><span class="dv">16</span>, weight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#ax.legend(handles=make_legend(best_fh, avg_fh, worst_fh), loc='lower right', fontsize=11)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regression_to_the_mean_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="first-half-narratives-exceptional-average-bench-him" class="level2">
+<h2 class="anchored" data-anchor-id="first-half-narratives-exceptional-average-bench-him">First-Half Narratives: “Exceptional!” “Average…” “Bench him!”</h2>
+<p>I’ve deliberately hidden these players’ <strong>second-half ratings</strong>. Before revealing them, I’d like you to think deeply about the following questions:</p>
+<ul>
+<li><strong>How do you think these players performed in the second half?</strong></li>
+<li><strong>Who would you trust going forward?</strong></li>
+<li><strong>Who would you praise or criticize based on just this half-season snapshot?</strong></li>
+</ul>
+<p>Pause here. Consider carefully before continuing. Make explicit or mental judgments based on the data you’ve seen so far.</p>
+<p>I know—it’s challenging to guess solely from these dots. To help you internalize, let me offer three relatable player narratives corresponding to each of the three groups.</p>
+<p>Right now, you might be thinking something along these lines:</p>
+<blockquote class="blockquote">
+<p><strong>🟢 For the top performers:</strong><br>
+<em>“He’s exceptional! Clearly, a talent we can build around. He’s the future. We should renew his contract, or if we had to sell him, we should expect extreme amounts!”</em></p>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>🔵 For the average performers:</strong><br>
+<em>“Solid player, but maybe lacking ambition. We need more exciting talent—someone who clearly makes a difference.”</em></p>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>🔴 For the worst performers:</strong><br>
+<em>“He looks lethargic, uninterested. He simply doesn’t have the mental toughness to succeed at this level. Bench him.”</em></p>
+</blockquote>
+<p>These reactions are natural to the human mind, yet they might also be premature.</p>
+<p>Just about a second when you scroll down, you might encounter something counter-intuitive for you. Below, you’ll see the same players’ second half performances, too.</p>
+<hr>
+<section id="reveal-second-half-performance-when-the-curtain-drops-reality-check" class="level3">
+<h3 class="anchored" data-anchor-id="reveal-second-half-performance-when-the-curtain-drops-reality-check">Reveal: Second-Half Performance | When the Curtain Drops — Reality Check</h3>
+<div id="4800a1bd" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot ---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, best_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Greens, norm<span class="op">=</span>norm)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, worst_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Reds, norm<span class="op">=</span>norm)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>plot_custom_dots(ax, avg_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Blues, norm<span class="op">=</span>norm)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax.axhline(fh_mean, linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linewidth<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">2.05</span>, fh_mean <span class="op">+</span> <span class="fl">0.1</span>, <span class="ss">f'First Half Mean: </span><span class="sc">{</span>fh_mean<span class="sc">:.2f}</span><span class="ss">'</span>, color<span class="op">=</span><span class="st">'gray'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Regression to the Mean</span><span class="ch">\n</span><span class="st">(First Half Perspective), with dots'</span>, fontsize<span class="op">=</span><span class="dv">16</span>, weight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>make_legend(best_fh, avg_fh, worst_fh), loc<span class="op">=</span><span class="st">'lower right'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regression_to_the_mean_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For better tracking, I prepared the observations in a way that lets you follow the players left to right on the x-axis. For example, you can now trace exactly how each top performer ended up performing in the second half, based on our modest simulation.</p>
+<p>Also, the legend provides the <strong>average change</strong> in performance for each group — which is super useful context.</p>
+</section>
+<section id="turns-out-the-story-changes" class="level3">
+<h3 class="anchored" data-anchor-id="turns-out-the-story-changes">Turns Out, the Story Changes…</h3>
+<p>When we reveal the hidden half, something remarkable happens:</p>
+<ul>
+<li>🟢 <strong>Top performers</strong> generally decline slightly, not catastrophically, but still, you can observe an evident decline. Also, enough to disappoint inflated expectations.</li>
+<li>🔵 <strong>Average players</strong> mostly remain stable in average rating. But they ended up going both ways.</li>
+<li>🔴 <strong>Worst performers</strong> notably improve, challenging the assumptions of incompetence or low motivation.</li>
+</ul>
+<p>But most importantly, they distributed almost homogenously. We don’t see three player categories conserved the distinction between them. This image is a visual representation of <strong>regression to the mean</strong> in action.</p>
+<p>To make this transition more intuitive and visually obvious, here’s another version of the same dataset — but this time with <strong>arrows</strong> connecting the two halves.</p>
+<p>Each arrow shows a player’s change from <strong>first half</strong> (dot origin) to <strong>second half</strong> (arrowhead):</p>
+<ul>
+<li>Direction: indicates movement.</li>
+<li>Color: matches the original grouping (green, blue, red).</li>
+<li>Length: shows how much the performance regressed toward the mean.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="arrows-that-regress" class="level2">
+<h2 class="anchored" data-anchor-id="arrows-that-regress">Arrows That Regress</h2>
+<section id="how-everyone-moves-closer-to-the-mean" class="level3">
+<h3 class="anchored" data-anchor-id="how-everyone-moves-closer-to-the-mean">How Everyone Moves Closer to the Mean</h3>
+<div id="e4418f5d" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot ---</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, best_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Greens, norm<span class="op">=</span>norm)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, worst_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Reds, norm<span class="op">=</span>norm)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, avg_fh, perspective<span class="op">=</span><span class="st">'fh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Blues, norm<span class="op">=</span>norm)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>ax.axhline(fh_mean, linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linewidth<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">2.05</span>, fh_mean <span class="op">+</span> <span class="fl">0.1</span>, <span class="ss">f'First Half Mean: </span><span class="sc">{</span>fh_mean<span class="sc">:.2f}</span><span class="ss">'</span>, color<span class="op">=</span><span class="st">'gray'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Regression to the Mean</span><span class="ch">\n</span><span class="st">(First Half Perspective), with arrows'</span>, fontsize<span class="op">=</span><span class="dv">16</span>, weight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>make_legend(best_fh, avg_fh, worst_fh), loc<span class="op">=</span><span class="st">'lower right'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regression_to_the_mean_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Visually or mathematically (shown in the legend), I think it’s definitely salient how they got close to the average.</p>
+<p>This arrow plot gives you an immediate sense of what’s happening:</p>
+<ul>
+<li>Many of the top performers are <strong>still good</strong>, but they’ve regressed toward the average.</li>
+<li>The worst performers? Surprisingly decent now.</li>
+<li>The average ones? Holding the line.</li>
+</ul>
+<p>It’s clear: extreme observations tend to pull back toward the center.</p>
+<hr>
+</section>
+</section>
+<section id="regression-check-a-slope-that-reveals-the-pull" class="level2">
+<h2 class="anchored" data-anchor-id="regression-check-a-slope-that-reveals-the-pull">Regression Check: A Slope That Reveals the Pull</h2>
+<p>While our simulation illustrates how extremes tend to drift toward the average, we can also show it quantitatively via a simple linear regression. If we take each player’s first-half performance as a predictor and plot their second-half performance against it, we can fit a regression line to see how well one half predicts the other.</p>
+<p>Specifically, if we take each player’s first-half rating as an independent variable (predictor) and second-half rating as the dependent variable (outcome), we typically see a regression slope less than 1. In a perfectly consistent world, the dots would fall on a 45-degree diagonal line — where every extreme performance repeats itself. That diagonal has a slope of 1.</p>
+<p>In a simple linear regression of; <span class="math display">\[\text{Second-Half Performance} = \text{ a } x \text{ b } x \text{ First-Half Performance } \]</span> the coefficient b (the “slope”) tells us how strongly the second-half scores scale with the first-half scores. A slope of 1 would mean that a player 1 point above average in the first half is predicted to be exactly 1 point above average in the second half. In other words, there would be no “pull” back toward the average.</p>
+<p>But, because of the luck factors, the line we actually get isn’t that <strong>steep</strong>. It’s <strong>flatter</strong>. In our simulation, the regression line has a slope less than 1 because we added luck factor to true skill. That number might seem small, but it’s doing something big:</p>
+<p>That number might seem small, but it’s doing something big:</p>
+<ul>
+<li><p>It pulls <strong>high performers down</strong>: If someone was far above average in the first half, the regression line predicts they’ll be closer to average in the second half.</p></li>
+<li><p>It pulls <strong>low performers up</strong>: If someone struggled early, it suggests they’ll bounce back — also drifting toward the middle.</p></li>
+</ul>
+<p>Check this plot out:</p>
+<div id="822f2db4" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plot_regression_with_highlighted_groups(df, best_fh, worst_fh, avg_fh)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regression_to_the_mean_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Why does that happen? Because football performance — like many things in life — is a mix of skill and randomness. And since randomness is unpredictable, the correlation between the two halves isn’t perfect. The slope reflects that imperfection. The less perfect the link, the more the extremes “shrink” toward the average. That’s regression to the mean in action — visualized.</p>
+</section>
+</section>
+<section id="real-world-players-simulated-stories-better-internalization" class="level1">
+<h1>Real-World Players, Simulated Stories, Better Internalization</h1>
+<p>When we see just one dot <em>— a single observation —</em> and that dot happens to represent someone we can relate to, our brains leap into action. We form causal relationships. We construct stories. And once those stories are formed, they’re stubborn. We hate ambiguity, and we act like everything must have a cause — even when there isn’t one.</p>
+<p>As I promised above, for better internalisation from the reader -I mean you-, I want to name each of the examples with coherent stories/seasons of the players in my plot. Of course that’s from a simulation, not the actual data. But still, by giving you relatable examplars that most of us know I want you to relate what my point really is.</p>
+<p>One more thing! Sorry had to hide it until that moment, remember <code>true_skill</code>? The <strong>tone (shade)</strong> of the observations in my plot implies the assumed true skill in the simulation. The darker the tone, the better the player truly is. With that in mind, feel free to pick your own little dot and match it to the examples I’m about to propose. Or even better — if you have a different player in mind, pick your own nominee.</p>
+<p>🟢 We all remember <strong>Grafite</strong>, right? After his exceptional 2008–09 Bundesliga season—scoring 28 goals in just 25 games and winning German Footballer of the Year, —next year quickly he faded, perfectly illustrating why he’s a great nominee for our “green” top performers. Let’s call any of those 10 green dots as Grafite.</p>
+<p>🔵 We all appreciate <strong>César Azpilicueta</strong>, don’t we? His remarkable consistency (rarely missing a game and delivering reliably solid performances year after year) makes him an ideal candidate to represent our “blue” average performers.</p>
+<p>🔴 I know, it may be harsh to put <strong>Radamel Falcao</strong> or <strong>Eden Hazard</strong> into any red classification. But after arriving at Manchester United in 2014, Falcao, once feared by defenders across Europe, managed only 4 goals the entire season. Also Hazard, Chelsea’s standout player and Player of the Year in 2015, went without scoring a single Premier League goal until late April of the following season.</p>
+<p>I hope you liked my nominees, or you have someone in your mind at least.</p>
+</section>
+<section id="cognitive-bias-narrative-causality" class="level1">
+<h1>Cognitive Bias: Narrative Causality</h1>
+<section id="why-we-see-meaning-where-theres-just-math" class="level3">
+<h3 class="anchored" data-anchor-id="why-we-see-meaning-where-theres-just-math">Why We See Meaning Where There’s Just Math</h3>
+<p>Now, revisit those initial narratives — but this time, in light of the <strong>full context</strong>:</p>
+<p>💬 <strong>Formerly praised top player</strong>, Grafite (now declined slightly):<br>
+<em>“He got complacent after early praise. The fame went to his head.”</em></p>
+<p>💬 <strong>Steady average</strong> Azpilicueta:<br>
+<em>“You know what to expect from him, but maybe he’s just too risk-averse. He’ll never dominate the S-tier.”</em></p>
+<p>💬 <strong>Previously criticized bottom performer</strong> (now improved), Falcao or Hazard:<br>
+<em>“The harsh criticism woke him up. He finally took responsibility.”</em></p>
+<p>But take a step back.</p>
+<p>Grafite didn’t “lose motivation.” His early peak was statistically unsustainable. Azpilicueta doesn’t need to “do more.” He has a standard for his level, and consistent. Falcao didn’t have some kind of magical awakening. He likely regressed back to where he always was.</p>
+<p>Notice the perversity here.</p>
+<ul>
+<li>The top performer, still doing better than average, is criticized for not maintaining exceptional levels.</li>
+<li>The average player is underappreciated for being boring.</li>
+<li>The bottom performer, who simply returned to normal, is glorified for a comeback that may not exist.</li>
+</ul>
+<p>This shift in narratives is subtle, and entirely driven by our misunderstanding of a simple statistical phenomenon, **Regression to the Mean–.</p>
+<p>We invent stories to explain noise — because silence is uncomfortable. Whenever we see a single relatable observation, event, fact, or situation that stands out, our minds quickly fill in the blanks. We make <strong>hasty causal conclusions</strong>, because it feels better to assign meaning than to admit randomness. We’re experiencing the cognitive ease when we connect things and make up narratives about those events, which will direct us through clearing the air by forming those narratives.</p>
+<p>If you say that an average player got <strong>complacent</strong> after being praised, you’ve built a <strong>time-bound story</strong>.</p>
+<p>If you say a poor performer was <strong>awakened</strong> by criticism, again — you’ve imposed a temporal cause-effect structure.</p>
+<blockquote class="blockquote">
+<p>“This happened, <em>so</em> that happened.”<br>
+“The praise came first, <em>therefore</em> complacency followed.”<br>
+“The criticism was the catalyst, <em>therefore</em> the improvement came.”</p>
+</blockquote>
+<p>This is how causal conclusions work: one needs to occur to cause the other. Awakening occur because of harsh criticism, complacency occurs because of intense praise from media/fans. Those are the statements.</p>
+<p>If you’re not fully convinced yet, let me try something else to convince you. Let’s <strong>reverse the timeline</strong> and look at the data from the other side.</p>
+<p>Below, you’ll see the same style of plot. But this time from the <strong>second half</strong> perspective.</p>
+<p>We’ll look at who performed extremely well or poorly in the second half of the season, and then ask:<br>
+<strong>How were they doing in the first half?</strong></p>
+<hr>
+</section>
+</section>
+<section id="reverse-perspective-second-half-first" class="level1">
+<h1>Reverse Perspective: Second Half First</h1>
+<section id="flip-the-script-the-pattern-holds" class="level3">
+<h3 class="anchored" data-anchor-id="flip-the-script-the-pattern-holds">Flip the Script — The Pattern Holds</h3>
+<div id="4bcff098" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot ---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, best_sh, perspective<span class="op">=</span><span class="st">'sh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Greens, norm<span class="op">=</span>norm)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, worst_sh, perspective<span class="op">=</span><span class="st">'sh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Reds, norm<span class="op">=</span>norm)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>plot_custom_arrows(ax, avg_sh, perspective<span class="op">=</span><span class="st">'sh'</span>, reveal_other_half<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span>cm.Blues, norm<span class="op">=</span>norm)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ax.axhline(sh_mean, linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linewidth<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">2.05</span>, sh_mean <span class="op">+</span> <span class="fl">0.1</span>, <span class="ss">f'Second Half Mean: </span><span class="sc">{</span>sh_mean<span class="sc">:.2f}</span><span class="ss">'</span>, color<span class="op">=</span><span class="st">'gray'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Regression to the Mean</span><span class="ch">\n</span><span class="st">(First Half Perspective), with arrows'</span>, fontsize<span class="op">=</span><span class="dv">16</span>, weight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>make_legend(best_sh, avg_sh, worst_sh), loc<span class="op">=</span><span class="st">'lower right'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regression_to_the_mean_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>I know — it’s a <strong>simple simulation</strong>. It can’t possibly capture the chaos, tactics, emotions, and complexity of real football. This isn’t about predicting player performance. But, we’re discussing only the statistical regularity. Even here, in this modest model, do you notice the same pattern? Best performers decline, averages can go any way so that they balance in average, and worst performers improve.</p>
+<p>The inspiration for this perspective — and my personal vantage point on this — comes from a line in <em>Thinking, Fast and Slow</em> by Daniel Kahneman:</p>
+<blockquote class="blockquote">
+<p><em>“The fact that you observe regression when you predict an early event from a later event should help convince you that regression does not have a causal explanation.”</em></p>
+</blockquote>
+<p>In simpler terms:</p>
+<p>Whether you move forward from the first half or backward from the second, extreme outcomes tend to mellow. The regression isn’t caused by anything. It’s not about motivation, effort, or coaching. It’s just randomness, and natural fluctuation. Balancing itself out.</p>
+</section>
+</section>
+<section id="reflection-and-final-thoughts" class="level1">
+<h1>Reflection and Final Thoughts</h1>
+<section id="the-most-honest-stories-arent-about-extremes" class="level3">
+<h3 class="anchored" data-anchor-id="the-most-honest-stories-arent-about-extremes">The Most Honest Stories Aren’t About Extremes</h3>
+<p>Look — I’m not saying player psychology doesn’t matter. It absolutely does. Same with coaching, sports science, tactics… Football is way too complex to boil down to just one thing. But still — underneath all of that — there’s this quiet, invisible force that’s always doing its thing: <strong>randomness</strong>. Every season. Every match. Every player.</p>
+<p>That wonderkid who looks unstoppable? There’s a bit of luck in those numbers.</p>
+<p>That star player who suddenly goes missing? Might not be about motivation. Shit happens, that’s part of the game.</p>
+<p>The problem starts when we start making stories up.</p>
+<p>We say:</p>
+<ul>
+<li>“He got lazy after all the hype.”</li>
+<li>“That criticism lit a fire under him.”</li>
+<li>“He just doesn’t care anymore.”</li>
+</ul>
+<p>And yeah, sometimes those things are true. But sometimes, and mostly they’re not. Because that’s what <strong>regression to the mean</strong> does. It <strong>pulls the extremes back toward the middle</strong>, whether we like it or not. Next time you see someone have a ridiculous season out of nowhere, or suddenly drop off a cliff, don’t jump straight to the storyline.</p>
+<p>Take a second and zoom out. Maybe it’s not about character. Maybe it’s not about form or pressure or “desire.” Maybe it’s just the math doing its quiet thing in the background.</p>
+<p>And that’s really what I want to leave you with:</p>
+<blockquote class="blockquote">
+<p>“The most honest stories aren’t about extremes — they’re about how no one stays there for long.” - a humble reminder that extremes are temporary, and balance is the only constant.</p>
+</blockquote>
+<p>It doesn’t mean football isn’t emotional. It doesn’t mean moments don’t matter. But I believe it does mean we should be a little more careful about the stories we attach to them.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

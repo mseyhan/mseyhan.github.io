@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="tr" xml:lang="tr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Murat Seyhan">
+<meta name="description" content="Sezgi neden kompleks kararlarda yanıltır? p-value’nun “dansını” 2015-2016 Premier League xG verisiyle simüle edip power, örneklem ve gürültüyü konuşuyoruz.">
+
+<title>Futbolda dağılımlarla düşünme – Murat Seyhan, Data Scientist</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../../../favicon.ico" rel="icon">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Sonuç yok",
+    "search-matching-documents-text": "eşleşen belgeler",
+    "search-copy-link-title": "Aramak için bağlantıyı kopyalayın",
+    "search-hide-matches-text": "Ek eşleşmeleri gizle",
+    "search-more-match-text": "bu belgede bir tane daha eşleşme",
+    "search-more-matches-text": "bu belgede daha fazla eşleşme",
+    "search-clear-button-title": "Temizle",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "İptal et",
+    "search-submit-button-title": "Gönder",
+    "search-label": "Ara"
+  }
+}</script>
+<script>
+  (() => {
+    const offsetMeta = document.querySelector('meta[name="quarto:offset"]');
+    const offset = (offsetMeta?.getAttribute("content") || "").trim();
+    const prefix = offset || "./";
+
+    const script = document.createElement("script");
+    script.src = `${prefix}assets/lang-toggle.js`;
+    document.head.appendChild(script);
+  })();
+</script>
+
+
+<link rel="stylesheet" href="../../../styles.css">
+<meta property="og:title" content="Futbolda dağılımlarla düşünme – Murat Seyhan, Data Scientist">
+<meta property="og:description" content="Sezgi neden kompleks kararlarda yanıltır? p-value’nun “dansını” 2015-2016 Premier League xG verisiyle simüle edip power, örneklem ve gürültüyü konuşuyoruz.">
+<meta property="og:image" content="thumbnail.png">
+<meta property="og:site_name" content="Murat Seyhan, Data Scientist">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Murat Seyhan, Data Scientist</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Ara"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Gezinmeyi değiştir" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">Hakkımda</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../#"> 
+<span class="menu-text">EN</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mseyhan"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/muratseyhan"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/false9ry"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Karanlık modu değiştir"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-page-left">
+      <h1 class="title">Futbolda dağılımlarla düşünme</h1>
+                  <div>
+        <div class="description">
+          Sezgi neden kompleks kararlarda yanıltır? p-value’nun “dansını” 2015-2016 Premier League xG verisiyle simüle edip power, örneklem ve gürültüyü konuşuyoruz.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">Football Analytics</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta column-page-left">
+
+      <div>
+      <div class="quarto-title-meta-heading">Yazar</div>
+      <div class="quarto-title-meta-contents">
+               <p>Murat Seyhan </p>
+            </div>
+    </div>
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Bu sayfada</h2>
+   
+  <ul>
+  <li><a href="#giriş" id="toc-giriş" class="nav-link active" data-scroll-target="#giriş">Giriş</a></li>
+  <li><a href="#yapacağımız-deney-aynı-soruyu-binlerce-kez-sormak" id="toc-yapacağımız-deney-aynı-soruyu-binlerce-kez-sormak" class="nav-link" data-scroll-target="#yapacağımız-deney-aynı-soruyu-binlerce-kez-sormak">Yapacağımız deney: aynı soruyu binlerce kez sormak</a></li>
+  <li><a href="#veriyi-çekme-ve-ön-hazırlık" id="toc-veriyi-çekme-ve-ön-hazırlık" class="nav-link" data-scroll-target="#veriyi-çekme-ve-ön-hazırlık">Veriyi çekme ve ön hazırlık</a></li>
+  <li><a href="#gerçek-fark-ve-sıfır-fark-dünyalarının-simülasyonu" id="toc-gerçek-fark-ve-sıfır-fark-dünyalarının-simülasyonu" class="nav-link" data-scroll-target="#gerçek-fark-ve-sıfır-fark-dünyalarının-simülasyonu">Gerçek fark ve sıfır fark dünyalarının simülasyonu</a></li>
+  <li><a href="#h0-dünyasında-p-valuelar-neden-düz-çizgi-gibi-görünür" id="toc-h0-dünyasında-p-valuelar-neden-düz-çizgi-gibi-görünür" class="nav-link" data-scroll-target="#h0-dünyasında-p-valuelar-neden-düz-çizgi-gibi-görünür">H0 dünyasında p-value’lar neden “düz çizgi” gibi görünür?</a></li>
+  <li><a href="#h1-dünyası-gerçek-fark-varsa-pler-sola-yığılır-ama-bazen-yine-büyük-çıkar" id="toc-h1-dünyası-gerçek-fark-varsa-pler-sola-yığılır-ama-bazen-yine-büyük-çıkar" class="nav-link" data-scroll-target="#h1-dünyası-gerçek-fark-varsa-pler-sola-yığılır-ama-bazen-yine-büyük-çıkar">H1 dünyası: gerçek fark varsa p’ler sola yığılır, ama bazen yine büyük çıkar?</a></li>
+  <li><a href="#power-histogramdaki-alfa-çizgisinin-solu" id="toc-power-histogramdaki-alfa-çizgisinin-solu" class="nav-link" data-scroll-target="#power-histogramdaki-alfa-çizgisinin-solu">Power: histogramdaki “alfa çizgisinin solu”</a></li>
+  <li><a href="#nerede-yanlış-karar-veriyoruz" id="toc-nerede-yanlış-karar-veriyoruz" class="nav-link" data-scroll-target="#nerede-yanlış-karar-veriyoruz">Nerede yanlış karar veriyoruz?</a>
+  <ul class="collapse">
+  <li><a href="#tek-büyük-maçtan-karakter-analizi-yapıyoruz" id="toc-tek-büyük-maçtan-karakter-analizi-yapıyoruz" class="nav-link" data-scroll-target="#tek-büyük-maçtan-karakter-analizi-yapıyoruz">- Tek büyük maçtan karakter analizi yapıyoruz</a></li>
+  <li><a href="#skora-veya-sonuçlara-aşırı-bağlanıyoruz" id="toc-skora-veya-sonuçlara-aşırı-bağlanıyoruz" class="nav-link" data-scroll-target="#skora-veya-sonuçlara-aşırı-bağlanıyoruz">- Skora veya sonuçlara aşırı bağlanıyoruz</a></li>
+  <li><a href="#kısa-seriyle-pahalı-kararlar-veriyoruz" id="toc-kısa-seriyle-pahalı-kararlar-veriyoruz" class="nav-link" data-scroll-target="#kısa-seriyle-pahalı-kararlar-veriyoruz">- Kısa seriyle pahalı kararlar veriyoruz</a></li>
+  </ul></li>
+  <li><a href="#bu-bilgi-nasıl-daha-iyi-karar-almamıza-yardımcı-olur" id="toc-bu-bilgi-nasıl-daha-iyi-karar-almamıza-yardımcı-olur" class="nav-link" data-scroll-target="#bu-bilgi-nasıl-daha-iyi-karar-almamıza-yardımcı-olur">Bu bilgi, nasıl daha iyi karar almamıza yardımcı olur?</a>
+  <ul class="collapse">
+  <li><a href="#küçük-örneklemle-1-5-karar-noktası-karar-verme-alışkanlığına-son-ver" id="toc-küçük-örneklemle-1-5-karar-noktası-karar-verme-alışkanlığına-son-ver" class="nav-link" data-scroll-target="#küçük-örneklemle-1-5-karar-noktası-karar-verme-alışkanlığına-son-ver">- Küçük örneklemle <em>(1-5 karar noktası)</em> karar verme alışkanlığına son ver</a></li>
+  <li><a href="#pahalı-kararların-kanıt-eşiğini-yükselt" id="toc-pahalı-kararların-kanıt-eşiğini-yükselt" class="nav-link" data-scroll-target="#pahalı-kararların-kanıt-eşiğini-yükselt">- Pahalı kararların kanıt eşiğini yükselt</a></li>
+  <li><a href="#sonuç-metriği-yerine-süreç-metriği-kullanmaya-çalış" id="toc-sonuç-metriği-yerine-süreç-metriği-kullanmaya-çalış" class="nav-link" data-scroll-target="#sonuç-metriği-yerine-süreç-metriği-kullanmaya-çalış">- Sonuç metriği yerine süreç metriği kullanmaya çalış</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+
+
+
+
+
+<section id="giriş" class="level3">
+<h3 class="anchored" data-anchor-id="giriş">Giriş</h3>
+<p>Karar alımı konusuna bir süredir takmış durumdayım. İnsan sezgisinin, doğası gereği çok boyutlu problemlerde karar verme konusunda zayıf olduğunu düşünüyorum. Primitif kararları çok rahatlıkla verebilsek bile kompleks problemlerde sezgisel karar vermemizin rastgele seçimlerden pek bir farkı yok. Bu noktada ortam da çok önemli. Eylemlerimiz sonucunda yüksek derecede düzenli ve hızlı sonuç aldığımız bir alanda çalışıyorsak sezgimize daha fazla güvenebiliriz.</p>
+<p>Birçok yanlılık ve kısayolun tümüyle çözümü yok, hepimiz bunlara açığız ama çeşitli alışkanlıkları inşa ederek genel anlamda daha doğru kararlar vermemizin de yolu açılıyor. Karar alımında nispeten geliştiğimi hissettiğim durumların çoğu, işin sonunda sezgilerime birçok konuda güvenmeyerek hareket ettiğim zamanlarda yaşandı. Ben de yeni alışkanlıklar edinirken istatistiksel düşünme biçimini kulanmaya çalıştım. Hala kat edilecek çok yolum olduğunun farkındayım.</p>
+<p>Bu yolu kat ederken ise herkes gibi, günlük hayattan örneklerle daha rahat anlıyorum çalıştığım şeyleri. Bu sebeple yazdığım şeylerde de bağlam keşfini ve analojiyi sıklıkla kullanmaya çalışıyorum. Günlük hayatımda farklı alanlarda verdiğim kararları, öğrendiklerimle eşleştirmek faydalı oluyor. Bu kararlardan sonrakinde, her öğrendiğim düşünme biçimini yerleşik hale getirmeye de çalışıyorum. Diğer bağlamlara transfer edilebilir yetenekler edinebilmek önemli.</p>
+<p>Yaklaşık 5 yıldır veri analitiği alanında çalışmamın vermiş olduğu gözlem birikimi beni alanda sık kullanılan sezgisel seçimleri irdelemeye itti. Bu blogda yazmak üzere klavyenin başına geçtiğim konu da, sıkça kullanılan ve “rule of thumb” adı altında epey yaygınlaşmış kullanımlardan biri: “p-value”.</p>
+<hr>
+<p>P-value ile ilgili en temel problem şu: çoğu zaman onu <strong><em>“tek atışlık bir karar etiketi”</em></strong> gibi kullanıyoruz. Oysa p-value, tek bir sayı olarak elimize düşse de arkasında bir <strong>oynaklık</strong> taşıyor; aynı gerçek etki altında bile farklı örneklemlerle tekrar tekrar ölçtüğünde p bazen küçük, bazen büyük gelebiliyor. <a href="https://mseyhan.github.io/tr/posts/regression_mean/regression_to_the_mean.html"><em>Önceki yazı</em></a>da “uçlar yanıltır” derken kastettiğim şey, tek bir gözlemi evren sanmaktı. Burada aynı fikri daha farklı bir yere taşıyacağız: <strong>tek bir p, gerçekliği temsil etmek zorunda değil</strong>. Bazen sadece kötü şansla “önemsiz” görünür, bazen iyi şansla “çok anlamlı” görünür. Yani p-value biraz <a href="https://www.youtube.com/watch?v=5OL1RqHrZQ8"><em>dans eder</em></a>. Ve gördüğüm kadarıyla veri analitiği alanında yaygın bir kavrama dönüşen bu kavramın dansı yok sayılıp, tek atışlık bir karar etiketi gibi kullanılıyor.</p>
+<p>Bu yazıda işleri daha sezgisel ve anlaşılabilir kılmak için okura iki ayrı “evren” izletme yöntemine gideceğim; sanki aynı filmin iki farklı versiyonu varmış gibi düşünelim.</p>
+<p>Birinci evrende <strong>H0 dünyası</strong> var: gerçekte iki şey arasında fark yok, yani ortada yakalanacak bir sinyal bulunmuyor.</p>
+<p>İkinci evrende ise <strong>H1 dünyası</strong> var: gerçekte fark var, ama sinyalin gücü ve gürültünün seviyesi yüzünden her ölçümde aynı netlikte görünmüyor.</p>
+<p>Aynı p-value kavramı bu iki dünyada bambaşka davranıyor: birinde yanlış alarmlar “doğal”, diğerinde ise gerçek sinyal olmasına rağmen bazen alarm çalmaması “normal”. Ben de bu iki evreni yan yana koyduğumda, p-value’yu bir sonuç damgası değil, <strong>sezgisel kararlarımızı ayarlamamıza yarayan bir frekans fikri</strong> olarak okumaya başlamıştım.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Metot ve hangi verinin kullanılacağı üzerine notlar">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Not</span>Metot ve hangi verinin kullanılacağı üzerine notlar
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Bu noktada soyut kavramları havada bırakmak istemiyorum; çünkü benim derdim zaten “sezgisel karar” meselesi. Gerçek hayatta karar verirken elimizde çoğu zaman tek bir deney yok—bir sürü küçük gözlem, belirsiz sinyal, gürültülü sonuç var. Futbol bu açıdan mükemmel bir laboratuvar: bir defa herkesin fikri var :), verisi bol, ama kararlar (oyuncu formu, transfer, teknik direktör değişimi) çoğu zaman tekil maçlara veya kısa serilere yaslanıp veriliyor. Dolayısıyla p-value gibi “tek sayı”ların bizi nasıl yanıltabildiğini anlatmak için futbol verisi iyi bir zemin.</p>
+<p>Bunu gösterirken gerçek bir futbol verisinden yararlanmak istedim. StatsBomb’un Open Data seti, bazı lig ve turnuvaların olay (event) bazlı verisini açık şekilde paylaşıyor. Tüm blog kolaylıkla reproduce edilebilecek bir fikrin sağlaması üzerine olacak ve ben <strong>Premier League 2015–16 sezonunu</strong> kullanacağım. Hem sezon boyunca hikâyesi çok güçlü (Leicester’ın şampiyonluğu), hem de zamanında canlı takip ettiğim için bağlamı zihnimde canlı. Neyi ölçmeye çalıştığımızı soyut A/B örnekleri yerine, herkesin gözünde bir görüntüsü olan bir dünyaya koymak daha kolay diye düşünüyorum.</p>
+<p>Teknik olarak Python’da <code>statsbombpy</code> ile Open Data’ya bağlanıp sezonun maçlarını çekiyoruz; sonra her maçın event verisinden şutları alıp şut başına beklenen gol değerini (<code>shot_statsbomb_xg</code>) kullanıyoruz. Bu metrik bildiğiniz üzere hem futbolda artık yaygın bir kerteriz noktası, hem de sonuç (gol oldu/olmadı) yerine süreç ölçümüne daha yakın olduğu için gürültüyü azaltıyor. Yazının devamında göreceğin simülasyonlarda da bu şut-xG dağılımını kullanarak, aynı soruyu tekrar tekrar sormuş gibi yapacağız: <em>“Bu iki grubun ortalama şut kalitesi gerçekten farklı mı?”</em> İşte p-value’ın dansı, gerçek futboldan gelen bu gürültülü örneklem üzerinde çok daha görünür hale geliyor.</p>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="yapacağımız-deney-aynı-soruyu-binlerce-kez-sormak" class="level3">
+<h3 class="anchored" data-anchor-id="yapacağımız-deney-aynı-soruyu-binlerce-kez-sormak">Yapacağımız deney: aynı soruyu binlerce kez sormak</h3>
+<p>Elbette “p-value dans eder” lafını soyut bir iddia olarak bırakmayacağız. <strong>Aynı karşılaştırmayı binlerce kez tekrar ediyor gibi yapıp</strong> p-value’ların şeklini göreceğiz.</p>
+<p>Bu yüzden, makul bir fark beklediğimiz iki grup seçiyorum:</p>
+<ul>
+<li><strong>Attacker</strong>: forvet, kanat gibi daha çok bitiricilik yapan pozisyonlar</li>
+<li><strong>Defender</strong>: stoper/bek gibi savunma ağırlıklı pozisyonlar</li>
+</ul>
+<p>Bu ikiliyi seçmemin sebebi şu: şut başına xG (şut kalitesi) dediğimiz şey, rol ve pozisyonla fazlasıyla alakalı. Hücumcuların daha <em>“tehlikeli”</em> addedilen bölgelerde daha sık şut bulması beklenir; savunmacıların şutları daha nadir ve daha düşük kaliteli olabilir. Kompany <a href="https://www.youtube.com/watch?v=Q37w_Da4dPA"><em>o şutu</em></a> çekerken çok iyi hissetmiş ve çok iyi vurmuş olabilir, ama yine de gol olma ihtimali düşüktü.. :) Genel olarak bu gruplama, H1 dünyamız için makul bir <em>“gerçek fark”</em> hipotezi veriyor.</p>
+<p>H0 dünyasını da şöyle kuracağız: <strong>gerçekte fark yokmuş gibi</strong> iki grubu aynı havuzdan üreteceğiz. Bunu yapmak için de tüm oyuncuların şutlarını tek bir havuzda topluyoruz, sonra rastgele seçimle iki gruba ayırıyoruz. Böylece her iki grubun da ortalama şut kalitesi aynı dağılımdan gelmiş oluyor.</p>
+</section>
+<section id="veriyi-çekme-ve-ön-hazırlık" class="level3">
+<h3 class="anchored" data-anchor-id="veriyi-çekme-ve-ön-hazırlık">Veriyi çekme ve ön hazırlık</h3>
+<p>Aşağıdaki hücreler StatsBomb Open Data’dan Premier League 2015–16 sezonunu seçip tüm maçların event verisini çekiyor, sonra da sadece şutları alıp <code>shot_statsbomb_xg</code> alanını topluyor.</p>
+<div id="a6737372" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tüm müsabakaların çekilmesi</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>comps <span class="op">=</span> sb.competitions()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># premier league 2015–16 için id seçimi</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>competition_id <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>season_id      <span class="op">=</span> <span class="dv">27</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>matches <span class="op">=</span> sb.matches(competition_id<span class="op">=</span>competition_id, season_id<span class="op">=</span>season_id)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>match_ids <span class="op">=</span> matches[<span class="st">"match_id"</span>].tolist()</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Sırada, tüm maçlardan şutları alıp iki gruba ayırmak var. Burada amacım “mükemmel pozisyon sınıflaması” yapmak değil; <strong>sezgilerimizle bağdaşan, makul iki kategori</strong> yaratmak.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Kod: Event verisini çekme ve ön hazırlık">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Not</span>Kod: Event verisini çekme ve ön hazırlık
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>KEEP_COLS <span class="op">=</span> [</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"match_id"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"position"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"shot_statsbomb_xg"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"team"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"player_id"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"under_pressure"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>shots_list <span class="op">=</span> []</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> mid <span class="kw">in</span> match_ids:</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> sb.events(match_id<span class="op">=</span>mid)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># shot'lara filtre</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df[df[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"Shot"</span>]</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># yalnızca lazım kolonlar</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> KEEP_COLS <span class="cf">if</span> c <span class="kw">in</span> df.columns]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df[cols]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># boşları alalım</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df.dropna(subset<span class="op">=</span>[<span class="st">"shot_statsbomb_xg"</span>, <span class="st">"position"</span>])</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    shots_list.append(df)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>shots <span class="op">=</span> pd.concat(shots_list, ignore_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> c <span class="kw">in</span> [<span class="st">"position"</span>, <span class="st">"team"</span>]:</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> c <span class="kw">in</span> shots.columns:</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        shots[c] <span class="op">=</span> shots[c].astype(<span class="st">"category"</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>shots[<span class="st">"shot_statsbomb_xg"</span>] <span class="op">=</span> shots[<span class="st">"shot_statsbomb_xg"</span>].astype(<span class="st">"float32"</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>shots[<span class="st">"pos_group"</span>] <span class="op">=</span> np.where(</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    shots[<span class="st">"position"</span>].<span class="bu">str</span>.contains(<span class="st">"Forward|Striker|Winger"</span>, case<span class="op">=</span><span class="va">False</span>, na<span class="op">=</span><span class="va">False</span>),</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Attacker"</span>,</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    np.where(shots[<span class="st">"position"</span>].<span class="bu">str</span>.contains(<span class="st">"Back|Defender"</span>, case<span class="op">=</span><span class="va">False</span>, na<span class="op">=</span><span class="va">False</span>), <span class="st">"Defender"</span>, <span class="st">"Other"</span>)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>shots <span class="op">=</span> shots[shots[<span class="st">"pos_group"</span>].isin([<span class="st">"Attacker"</span>, <span class="st">"Defender"</span>])]</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<p>Aşağıda da görüldüğü üzere, sezon verisinde yeterince şut var.</p>
+<div id="b7bbeaac" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(shots)</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>4286</code></pre>
+</div>
+</div>
+</section>
+<section id="gerçek-fark-ve-sıfır-fark-dünyalarının-simülasyonu" class="level3">
+<h3 class="anchored" data-anchor-id="gerçek-fark-ve-sıfır-fark-dünyalarının-simülasyonu">Gerçek fark ve sıfır fark dünyalarının simülasyonu</h3>
+<p>Burada kilit fikir şu: p-value tek seferlik bir sonuç değil; çünkü gösterdiği şey <strong>boş hipotezimizin gerçek olduğu varsayımı altında örneklemimizden gelen ortalamanın ne kadar olası olduğu</strong>. Örneklemimiz bambaşka da olabilirdi, çünkü rastgele seçim yaptık. Bu noktada p-value’ların farklı örneklem büyüklüklerine göre bir dağılımı olmak durumunda. Biz de bu dağılımı büyük sayılar kanununun yardımıyla aynı deneyi 20.000 kez tekrarlayarak canlandıracağız.</p>
+<ul>
+<li><strong>H1-benzeri simülasyon (gerçekte fark var):</strong> Attacker ve Defender gruplarından ayrı ayrı örneklem çekiyoruz; her tekrarda iki ortalamayı karşılaştırıp p hesaplıyoruz.</li>
+<li><strong>H0-benzeri simülasyon (gerçekte fark yok):</strong> İki grubun da aynı havuzdan geldiğini varsayıp, tek bir havuzdan iki örneklem çekiyoruz; yine p hesaplıyoruz.</li>
+</ul>
+<div id="ab3b2982" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H1: İki grup farklı havuzdan geliyor.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_pvals(df, group_col, value_col, g1, g2, n<span class="op">=</span><span class="dv">100</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> df[df[group_col] <span class="op">==</span> g1][value_col].to_numpy()</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> df[df[group_col] <span class="op">==</span> g2][value_col].to_numpy()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> np.empty(B)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(B):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        xs <span class="op">=</span> rng.choice(x, size<span class="op">=</span>n, replace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        ys <span class="op">=</span> rng.choice(y, size<span class="op">=</span>n, replace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        p[i] <span class="op">=</span> stats.ttest_ind(xs, ys, equal_var<span class="op">=</span><span class="va">False</span>).pvalue</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> p</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># H0: İki grup aynı havuzdan geliyor.</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_pvals_null_by_permutation(df, group_col, value_col, g1, g2, n<span class="op">=</span><span class="dv">100</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    sub <span class="op">=</span> df[df[group_col].isin([g1, g2])][[group_col, value_col]].dropna().copy()</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    vals <span class="op">=</span> sub[value_col].to_numpy()</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> np.empty(B)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(B):</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        xs <span class="op">=</span> rng.choice(vals, size<span class="op">=</span>n, replace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        ys <span class="op">=</span> rng.choice(vals, size<span class="op">=</span>n, replace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        p[i] <span class="op">=</span> stats.ttest_ind(xs, ys, equal_var<span class="op">=</span><span class="va">False</span>).pvalue</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> p</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Burada <code>n=50</code> gibi bir değer seçtiğimde, aslında şunu yapıyorum: “Her evrende, sanki <strong>50 şutluk iki mini-örneklem</strong> alıp (Attacker vs Defender) aralarında fark var mı diye bakıyorum.” Futboldaki ‘tek maçtan hüküm verme’ hissine denk düşen şey tam da bu: <strong>küçük örneklem</strong>.</p>
+</section>
+<section id="h0-dünyasında-p-valuelar-neden-düz-çizgi-gibi-görünür" class="level3">
+<h3 class="anchored" data-anchor-id="h0-dünyasında-p-valuelar-neden-düz-çizgi-gibi-görünür">H0 dünyasında p-value’lar neden “düz çizgi” gibi görünür?</h3>
+<p>H0 dünyasında gerçekte fark yok. O yüzden p-value üretmek, kabaca <strong>0 ile 1 arasında her yere eşit şansla dağılmış</strong> sayılar üretmek gibi. 0.08 de 0.98 de aynı derecede sıradan.</p>
+<p>Bunu sadece lafla değil, doğrudan veriden alınan çıktılarla görelim.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Kod: Histogram fonksiyonu">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Not</span>Kod: Histogram fonksiyonu
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_hist(p, title<span class="op">=</span><span class="st">""</span>, bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.05</span>, density<span class="op">=</span><span class="va">False</span>, show_expected<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> np.asarray(p, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> p[np.isfinite(p)]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> p[(p <span class="op">&gt;=</span> <span class="dv">0</span>) <span class="op">&amp;</span> (p <span class="op">&lt;=</span> <span class="dv">1</span>)]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    frac_sig <span class="op">=</span> (p <span class="op">&lt;</span> alpha).mean()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">8.5</span>, <span class="fl">4.8</span>))</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    edges <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, bins <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    ax.hist(p, bins<span class="op">=</span>edges, density<span class="op">=</span>density)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    ax.axvline(alpha, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> show_expected:</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> density:</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            ax.axhline(<span class="fl">1.0</span>, linestyle<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            expected <span class="op">=</span> p.size <span class="op">/</span> bins</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            ax.axhline(expected, linestyle<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    main_title <span class="op">=</span> title.strip() <span class="cf">if</span> title <span class="cf">else</span> <span class="st">"p-value distribution"</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>main_title<span class="sc">}</span><span class="ss"> | n=</span><span class="sc">{</span>p<span class="sc">.</span>size<span class="sc">:,}</span><span class="ss"> | P(p&lt;</span><span class="sc">{</span>alpha<span class="sc">}</span><span class="ss">)=</span><span class="sc">{</span>frac_sig<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"p-value"</span>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"density"</span> <span class="cf">if</span> density <span class="cf">else</span> <span class="st">"count"</span>)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    ax.grid(<span class="va">True</span>, which<span class="op">=</span><span class="st">"major"</span>, axis<span class="op">=</span><span class="st">"both"</span>, alpha<span class="op">=</span><span class="fl">0.25</span>)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> spine <span class="kw">in</span> [<span class="st">"top"</span>, <span class="st">"right"</span>]:</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        ax.spines[spine].set_visible(<span class="va">False</span>)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<p>Aşağıdaki grafik, H0 dünyasında 20.000 kez yapılan simülasyonun p-value dağılımını gösteriyor. Görüldüğü üzere, p-value’lar 0 ile 1 arasında neredeyse eşit şekilde dağılmış durumda.</p>
+<div id="a01bed9e" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p_h0 <span class="op">=</span> simulate_pvals_null_by_permutation(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    shots, <span class="st">"pos_group"</span>, <span class="st">"shot_statsbomb_xg"</span>, <span class="st">"Attacker"</span>, <span class="st">"Defender"</span>, n<span class="op">=</span><span class="dv">50</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">1903</span> <span class="co"># bjk</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"H0-like P(p&lt;0.05):"</span>, (p_h0 <span class="op">&lt;</span> <span class="fl">0.05</span>).mean())</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>plot_hist(p_h0, <span class="st">"H0-like: pooled null (should look ~uniform)"</span>)</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>H0-like P(p&lt;0.05): 0.04755</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="thinking_in_distributions_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>H0 dünyasında küçük p “kötü” değil; sadece yanlış alarmın kaçınılmaz bedeli.</strong> Eşiği 0.05 seçtiysen, gerçekte fark olmasa bile uzun vadede her 100 denemenin yaklaşık 5’inde p&lt;0.05 görmeyi zaten kabul etmiş oluyorsun. Yani eğer boş hipotez doğruysa ve etki yoksa bile, yapılan 100 deneyin 5’inde yanlışlıkla “anlamlı fark var” sonucuna varacağız ve bu treshold’u direkt olarak biz belirledik.</p>
+</section>
+<section id="h1-dünyası-gerçek-fark-varsa-pler-sola-yığılır-ama-bazen-yine-büyük-çıkar" class="level3">
+<h3 class="anchored" data-anchor-id="h1-dünyası-gerçek-fark-varsa-pler-sola-yığılır-ama-bazen-yine-büyük-çıkar">H1 dünyası: gerçek fark varsa p’ler sola yığılır, ama bazen yine büyük çıkar?</h3>
+<p>Bu evrenimizde Attacker ve Defender’ı gerçekten ayrı havuzlar gibi ele aldığımız için, a priori düşüncemiz doğruysa, ortalamalar gerçekten ayrılmaya meyilli olacağı için p-value’lar 0’a doğru yığılmaya başlar.</p>
+<p>Ama günlük her basit kararda “p&lt;0.05 ise etki vardır” sezgisi yanlış ve bunu p-value’ların dağılımını aklımıza getirmediğimiz sürece anlayamayabiliriz. Sezgisel olarak aklımıza gelen ilk şey bu gördüğümüz sayının etkinin var olduğuna dair kesin kanıt sunduğu olur. Oysa gerçek hayatta, özellikle küçük örneklemlerde, bazen p büyük de çıkabilir. Yazı tura oyunu oynadığımızı düşünelim. Para biraz hileliyse bile, 10 atışta bazen adil gibi görünür.</p>
+<p>Futboldaki karşılığı çok tanıdık. Bir forvet gerçekte iyi bitirici olsa bile, <strong>tek maçta</strong> 2 net pozisyon kaçırabilir. Veya hakemler çok konuşulduğu için söylüyorum, pratik olarak anlamlı şekilde art niyetli karar veriyor olsalar bile, 1-2 maç bakıp da kötü niyetli kararı veremeyebiliriz, çok adil yönetiyor gibi de görünebilirler.</p>
+<div id="41c1d687" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>p_h1 <span class="op">=</span> simulate_pvals(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    shots, <span class="st">"pos_group"</span>, <span class="st">"shot_statsbomb_xg"</span>, <span class="st">"Attacker"</span>, <span class="st">"Defender"</span>, n<span class="op">=</span><span class="dv">50</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">1903</span> <span class="co"># bjk</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"H1-like P(p&lt;0.05):"</span>, (p_h1 <span class="op">&lt;</span> <span class="fl">0.05</span>).mean())</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>plot_hist(p_h1, <span class="st">"H1-like: Attacker vs Defender (should pile up near 0)"</span>)</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>H1-like P(p&lt;0.05): 0.5935</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="thinking_in_distributions_files/figure-html/cell-9-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Grafikte göze çarpan ilk şey, doğal olarak sola yatıklık oluyor. Ama yine de sağ tarafta barlar görebiliyoruz.</p>
+<p>Bu yüzden p’yi tekil bir sonuç değil, <strong>şekli olan bir şey, bir dağılım</strong> olarak algılamaya başlamalıyız. Sağ tarafa düşen p’lerin olması bize şunu gösterir:</p>
+<blockquote class="blockquote">
+<p><em>Etki varken bile bazen ‘non-significant’ sonuçlar beklenir; buna karar veren şey örneklemin gücü (power) ve gürültünün seviyesi.</em></p>
+</blockquote>
+<p>Şimdi power’ı, bu histogramların üstünde konuşulabilir hale getirelim: <em>“P(p&lt;0.05)”</em> aslında hangi evrende ne kadar alarm beklediğimizin sayısallaşmış hali.</p>
+<hr>
+</section>
+<section id="power-histogramdaki-alfa-çizgisinin-solu" class="level3">
+<h3 class="anchored" data-anchor-id="power-histogramdaki-alfa-çizgisinin-solu">Power: histogramdaki “alfa çizgisinin solu”</h3>
+<p>Histogramları çizdirirken 0.05’teki kesikli mavi dik çizgiyi (alfa) özellikle koydum. Çünkü bu çizgi, “bu eşiğin altında kalırsa <strong>alarm veririm</strong>” dediğimiz sınır.</p>
+<p>Aslında <strong>power</strong> dediğimiz şey, H1 dünyasında bu çizginin solunda kalan alan:</p>
+<blockquote class="blockquote">
+<p><strong>Power = P(p &lt; α | H1 doğru)</strong></p>
+</blockquote>
+<p>Bunu karmaşık bir şey gibi düşünmeyelim, sadece şunu söylüyor:</p>
+<blockquote class="blockquote">
+<p>Eğer gerçekte fark varsa ve ben aynı deneyi tekrar tekrar yapsaydım kaç tanesinde “p&lt;0.05” görüp <em>‘tamam, sinyal var’</em> diyecektim?</p>
+</blockquote>
+<p>Grafiğin başlığındaki <code>P(p&lt;0.05)=...</code> ifadesi, tam olarak “alfa çizgisinin solundaki pay”.</p>
+<ul>
+<li>H0 grafiğinde (uniform olan) bu değer yaklaşık <strong>0.05</strong> çıkıyor: çünkü ortada sinyal yokken eşiğin kendisi yanlış alarm oranını belirliyor.</li>
+<li>H1 grafiğinde (sola yığılan) bu değer artık <strong>power</strong> oluyor: gerçek fark varken alarmın ne kadar sık çaldığı.</li>
+</ul>
+<p>Power %50 ise, aynı karşılaştırmayı 100.000 kez yaptığımızda yaklaşık 50.000’inde <code>p&lt;0.05</code> göreceğiz. En başında değindiğimiz, “bugün p çıkmadı → etki yok” gibi bir cümle, çoğu zaman şunu atlar: belki de bu deneyin power’ı düşük, yani <strong>etki varken bile</strong> sık sık “çalmayan alarm” görmen bekleniyor.</p>
+<p><code>n=50</code> dediğimizde aslında “her gruptan 50 şutluk bir mini-örneklem” alıyoruz. Bazı maçlarda/serilerde 50 şut bile toplanmıyor; örneklem küçük kaldıkça gürültü büyüyor ve power düşüyor. Sonuç: gerçek fark olsa bile p bazen sağ tarafta kalıyor.</p>
+<p>Bir sonraki adımda sezgiyi <strong>tersinden</strong> göstereceğiz: “n’i büyütürsen güç artar” doğru ama bunu daha iyi anlamanın yollarından biri bazen <strong>n’i küçültüp</strong> neler kaybettiğini görmek.</p>
+<p>Az önceki grafikte <code>n=50</code> ile (her gruptan 50 şutluk mini-örneklemler) p’lerin belirgin biçimde sola yığıldığını gördük. Şimdi aynı şeyi daha küçük bir örneklemle <strong>n=5</strong> ile yapalım. Her seferinde hücumcular arasından 5 şut, defanslar arasından 5 şut alıp test edeceğiz. Bu, özellikle hücumcular söz konusu olduğunda “tek maçtan hüküm vermek”ten bile daha sert olabilir. Bir forvet maç başına 5’ten fazla şut rahatlıkla çekebilir. Henüz maçı bitirmeden yargılamak gibi bir şey.</p>
+<p>Aşağıdaki grafikte H1 dünyasında şunları göreceğiz:</p>
+<ol type="1">
+<li><p><strong>Alfa çizgisinin</strong> (0.05) solunda kalan kısım küçülecek — yani başlıkta yazan <code>P(p&lt;0.05)</code> düşecek.</p></li>
+<li><p>Histogramın “sola yapışma” hissi azalacak; p’ler daha çok sağa yayılacak.</p></li>
+</ol>
+<div id="8f3f86e4" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>p_h1 <span class="op">=</span> simulate_pvals(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    shots, <span class="st">"pos_group"</span>, <span class="st">"shot_statsbomb_xg"</span>, <span class="st">"Attacker"</span>, <span class="st">"Defender"</span>, n<span class="op">=</span><span class="dv">5</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">1903</span> <span class="co"># bjk</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># H0'ı aynı şekilde bırakıyoruz: referans çizgimiz (uniformluk) değişmesin</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>p_h0 <span class="op">=</span> simulate_pvals_null_by_permutation(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    shots, <span class="st">"pos_group"</span>, <span class="st">"shot_statsbomb_xg"</span>, <span class="st">"Attacker"</span>, <span class="st">"Defender"</span>, n<span class="op">=</span><span class="dv">50</span>, B<span class="op">=</span><span class="dv">20000</span>, seed<span class="op">=</span><span class="dv">1903</span> <span class="co"># bjk</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"H1-like P(p&lt;0.05):"</span>, (p_h1 <span class="op">&lt;</span> <span class="fl">0.05</span>).mean())</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"H0-like P(p&lt;0.05):"</span>, (p_h0 <span class="op">&lt;</span> <span class="fl">0.05</span>).mean())</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>plot_hist(p_h0, <span class="st">"H0-like: pooled null (should look ~uniform)"</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>plot_hist(p_h1, <span class="st">"H1-like: Attacker vs Defender (less piling up near 0)"</span>)</span></code></pre></div><button title="Panoya Kopyala" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>H1-like P(p&lt;0.05): 0.03405
+H0-like P(p&lt;0.05): 0.04755</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="thinking_in_distributions_files/figure-html/cell-10-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="thinking_in_distributions_files/figure-html/cell-10-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Buradaki mesaj bence çok net: <strong>Gerçek fark varken bile</strong>, eğer her seferinde elinde sadece 5’er şut varsa, “anlamlı sonuç” beklemek gerçekçi değil.</p>
+<p>Düşük örneklemle verdiğimiz kararlar, çoğu zaman “gerçek yok”tan değil, <strong>görememekten</strong> kaynaklanır. Yaygın olarak görülen, taraftar veya yönetici fark etmeksizin tek maçtan oyuncu formu, takım kimyası, teknik direktör etkisi gibi büyük laflar etmeye bu kadar müsait olmamızın nasıl zararlı olabileceğini buradan anlayabiliriz.</p>
+<hr>
+</section>
+<section id="nerede-yanlış-karar-veriyoruz" class="level2">
+<h2 class="anchored" data-anchor-id="nerede-yanlış-karar-veriyoruz">Nerede yanlış karar veriyoruz?</h2>
+<p>Aslında basitçe, <strong>tek örneklemi, dağılım sanıyoruz.</strong></p>
+<p>P-value günlük hayatta çok kullandığımız bir kavram değil belki, ama zihnimizde bir fark veya etki tespit ettiğimiz her an, aslında p-value benzeri bir süreci işletiyoruz. Gördüğümüz şeyin normalden farklı olduğunu düşünüyor, ve normlarımıza göre bir test başlatıyoruz zihnimizde. <strong>Bu farklılık gözümüze büyük geliyorsa ve etrafımızdaki normların genel sapmasından daha uzak bir noktadaysa “anlamlı” kabul ediyoruz.</strong> Ancak genellikle bunlar tekil veya az sayıda gözlemlerden geliyor.</p>
+<p>Ben de p-value’yu “tek sonuç” değil “tekrar eden bir sürecin çıktısı” olarak görmeye başladığımda, aslında çoğu zaman sadece gürültünün şans eseri karşımıza çıkmasını abarttığımızı düşünmeye başladım. Ama biz onu karakter analizi, form tespiti, hatta milyon euroluk kararların temeli yapıyoruz.</p>
+<p>Bence sık düşülen kalıp hatalar var, örneğin:</p>
+<section id="tek-büyük-maçtan-karakter-analizi-yapıyoruz" class="level3">
+<h3 class="anchored" data-anchor-id="tek-büyük-maçtan-karakter-analizi-yapıyoruz">- Tek büyük maçtan karakter analizi yapıyoruz</h3>
+<pre class="text"><code>Derbiyi kötü yönetti, yenildik. → “Büyük maçların hocası değil.”</code></pre>
+<p>Bu yorum problemli çünkü “derbi performansı” denen şey içinde bir sürü rastgelelik taşıyor. Erken yenilen gol, hakem kararı, bir iki kritik top kaybı… Bir oyuncunun gerçek seviyesini ölçmek yerine, dağılımdan çekilmiş tek bir örneği (o günkü realizasyonu) alıp kişilik analizi yapıyoruz.</p>
+</section>
+<section id="skora-veya-sonuçlara-aşırı-bağlanıyoruz" class="level3">
+<h3 class="anchored" data-anchor-id="skora-veya-sonuçlara-aşırı-bağlanıyoruz">- Skora veya sonuçlara aşırı bağlanıyoruz</h3>
+<pre class="text"><code>2 gol attı → “formda.”</code></pre>
+<p>Gol, futbolun en gürültülü çıktısı. Biz ise çoğu zaman sonucu kutsayıp süreci görmezden geliyoruz: şutun nereden geldiği, şut kalitesi (xG), oyuncunun rolü, takımın onu hangi bağlamda pozisyona soktuğu… Biz xG kullandık (<code>shot_statsbomb_xg</code>) tam da bu yüzden iyi bir örnek: gol olup olmamasından bağımsız, şutun “tehlike” seviyesine daha yakın bir süreç metriği.</p>
+</section>
+<section id="kısa-seriyle-pahalı-kararlar-veriyoruz" class="level3">
+<h3 class="anchored" data-anchor-id="kısa-seriyle-pahalı-kararlar-veriyoruz">- Kısa seriyle pahalı kararlar veriyoruz</h3>
+<pre class="text"><code>10–15 maç → “sat / kirala / hoca kov.”</code></pre>
+<p>Bu, pahalı kararları demin anlattığımız bağlamla <em>“power’ı düşük bir ölçümle”</em> almak demek. Süper Lig’de bazen 10 maçta bir teknik direktör değişiyor. 10 maçlık seri, futbolun gürültüsünde çok küçük bir pencere. Burada gördüğümüz şey, çoğu zaman gerçek performans değil, rastgelelikten gelen sapmalar.</p>
+<p>Örneğin <a href="https://x.com/BozzStatz">BozzStats</a>’ın hep çok güldüğüm bir görselleştirmesi var.</p>
+<p><a href="https://hocam.bozzstatz.com/">BozzStats Hocam Grafiği</a></p>
+</section>
+</section>
+<section id="bu-bilgi-nasıl-daha-iyi-karar-almamıza-yardımcı-olur" class="level2">
+<h2 class="anchored" data-anchor-id="bu-bilgi-nasıl-daha-iyi-karar-almamıza-yardımcı-olur">Bu bilgi, nasıl daha iyi karar almamıza yardımcı olur?</h2>
+<p>Daha önce de bahsettiğim gibi farklı bağlamlara transfer edilebilir yetenekler edinmeye çalışmak çok önemli. Bu bilgiyi daha iyi karar alabilmek için küçük refleksler geliştirme çabasında kullanabiliriz.</p>
+<section id="küçük-örneklemle-1-5-karar-noktası-karar-verme-alışkanlığına-son-ver" class="level3">
+<h3 class="anchored" data-anchor-id="küçük-örneklemle-1-5-karar-noktası-karar-verme-alışkanlığına-son-ver">- Küçük örneklemle <em>(1-5 karar noktası)</em> karar verme alışkanlığına son ver</h3>
+<p>Tek maçtan hüküm vermek yerine, “Bu performansı hangi seri içinde görüyorum?” diye kendini frenleme alışkanlığı edinmek. Bu konularda düşünmek için sorular:</p>
+<ul>
+<li>Aynı oyuncu benzer rollerde, benzer rakiplere karşı benzer kararlar mı veriyor?</li>
+<li>Koşullar değişti mi? (rol, sakatlık, taktik, maçın akışı)</li>
+</ul>
+<p>Bu, p-value dilinde şu anlama geliyor: <strong>tek bir p ile karar verme; sürecin tekrarlanabilirliğini ara.</strong></p>
+</section>
+<section id="pahalı-kararların-kanıt-eşiğini-yükselt" class="level3">
+<h3 class="anchored" data-anchor-id="pahalı-kararların-kanıt-eşiğini-yükselt">- Pahalı kararların kanıt eşiğini yükselt</h3>
+<p>Bir kararın maliyeti yükseldikçe, “kanıt” eşiğini de yükseltmek gerekir.</p>
+<ul>
+<li>Hocayı kovmak / oyuncu satmak / büyük kontrat vermek gibi kararlar, tek maçlık hissiyatla değil, daha güçlü bir sinyal ve daha sağlam örneklemle alınmalı.</li>
+</ul>
+<p>Bunu notebook’taki <code>n=5</code> deneyini aklımıza getirerek yapabiliriz. Örneklem küçüldüğünde power düşüyor ve “etki varken bile” net sonuç görmek zorlaşıyor. Pahalı kararlarda bu riski göze almak istemeyiz.</p>
+</section>
+<section id="sonuç-metriği-yerine-süreç-metriği-kullanmaya-çalış" class="level3">
+<h3 class="anchored" data-anchor-id="sonuç-metriği-yerine-süreç-metriği-kullanmaya-çalış">- Sonuç metriği yerine süreç metriği kullanmaya çalış</h3>
+<p>Gol/puan gibi sonuç metrikleriyle karar vermek yerine süreç metrikleri (xG, şut kalitesi, pas bağlantısı, pres aksiyonları, topu üçüncü bölgeye taşıma vb.) daha stabil sinyaller verebilir.</p>
+<p>Genel olarak süreci geliştirmeye odaklanmak ve sonuçların gelmesini beklemek, tekil sonuçlara aşırı bağlanmaktan daha sağlıklı olabilir.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Kopyalandı");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Kopyalandı");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

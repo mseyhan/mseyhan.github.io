@@ -1,36 +1,51 @@
 (function () {
   function normalizePath(pathname) {
     // /index.html gibi durumları temizle
-    return pathname.replace(/\/index\.html$/, "/");
+    const cleaned = pathname.replace(/\/index\.html$/, "/");
+    return cleaned === "" ? "/" : cleaned;
   }
 
-  function toTR(path) {
-    if (path === "/") return "/tr/";
-    if (path.startsWith("/tr/")) return path;
-    return "/tr" + path;
+  function getBasePath() {
+    // Quarto meta offset ile kök path'i yakala (ör: ../../ -> /blog/)
+    const offset = (document.querySelector('meta[name="quarto:offset"]')?.getAttribute("content") || "./").trim() || "./";
+    const baseUrl = new URL(offset, window.location.href);
+    const basePath = baseUrl.pathname;
+    return basePath.endsWith("/") ? basePath : `${basePath}/`;
   }
 
-  function toEN(path) {
-    if (path.startsWith("/tr/")) {
-      const p = path.replace(/^\/tr/, "");
-      return p === "" ? "/" : p;
-    }
-    return path;
+  function stripLeadingSlash(value) {
+    return value.replace(/^\/+/, "");
   }
 
-  async function urlExists(url) {
-    // GH Pages bazen HEAD'de garip davranabiliyor; GET ile kontrol daha stabil
-    try {
-      const res = await fetch(url, { method: "GET", cache: "no-store" });
-      return res.ok;
-    } catch {
-      return false;
-    }
+  function buildPath(basePath, relative, keepSlash) {
+    const cleanedRelative = stripLeadingSlash(relative);
+    const url = new URL(cleanedRelative || ".", window.location.origin + basePath);
+    let out = url.pathname;
+    if (keepSlash && !out.endsWith("/")) out += "/";
+    if (!keepSlash && out !== "/" && out.endsWith("/")) out = out.replace(/\/$/, "");
+    return out || "/";
   }
 
-  async function init() {
-    const current = normalizePath(window.location.pathname);
+  function toTR(pathname) {
+    const basePath = getBasePath();
+    const current = normalizePath(pathname);
+    const trailingSlash = current.endsWith("/");
+    const relative = stripLeadingSlash(current.startsWith(basePath) ? current.slice(basePath.length) : current);
+    if (relative.startsWith("tr/")) return current;
+    return buildPath(basePath, `tr/${relative}`, true);
+  }
 
+  function toEN(pathname) {
+    const basePath = getBasePath();
+    const current = normalizePath(pathname);
+    const trailingSlash = current.endsWith("/");
+    const relative = stripLeadingSlash(current.startsWith(basePath) ? current.slice(basePath.length) : current);
+    if (!relative.startsWith("tr/")) return current;
+    const newRelative = relative.replace(/^tr\/?/, "");
+    return buildPath(basePath, newRelative, trailingSlash || newRelative === "");
+  }
+
+  function init() {
     // Navbar'da "TR" veya "EN" yazan linki bul
     const links = Array.from(document.querySelectorAll("a"));
     const toggle = links.find(a => {
@@ -41,11 +56,9 @@
     if (!toggle) return;
 
     const label = (toggle.textContent || "").trim().toUpperCase();
-    const target = (label === "TR") ? toTR(current) : toEN(current);
-
-    // Eğer hedef sayfa yoksa, dilin ana sayfasına düş
-    const ok = await urlExists(target);
-    toggle.href = ok ? target : (label === "TR" ? "/tr/" : "/");
+    const current = normalizePath(window.location.pathname);
+    const target = label === "TR" ? toTR(current) : toEN(current);
+    toggle.href = target;
   }
 
   document.addEventListener("DOMContentLoaded", init);

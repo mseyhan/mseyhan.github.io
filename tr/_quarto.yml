@@ -4,6 +4,8 @@ project:
   render:
     - "*.qmd"
     - "posts/**"
+  resources:
+    - assets/lang-toggle.js
 
 website:
   title: "Murat Seyhan, Data Scientist"
@@ -28,9 +30,6 @@ format:
     theme:
       light: flatly
       dark: darkly
-    include-after-body:
-      - assets/lang-toggle.js
     css: ../styles.css
     include-in-header:
       - ../lang-toggle.html
-

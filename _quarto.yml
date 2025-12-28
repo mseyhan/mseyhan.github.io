@@ -8,7 +8,7 @@ project:
 
   resources:
     - assets/lang-toggle.js
-    - _includes/lang-toggle.html
+    - lang-toggle.html
 
 
 website:
@@ -34,9 +34,6 @@ format:
     theme:
       light: flatly
       dark: darkly
-    include-after-body:
-      - assets/lang-toggle.js
     css: styles.css
     include-in-header:
       - lang-toggle.html
-
