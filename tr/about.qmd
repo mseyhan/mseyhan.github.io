@@ -1,0 +1,24 @@
+---
+title: "Hakkında"
+image: ../profile.jpeg
+about:
+  template: solana
+  links:
+    - icon: twitter
+      text: Twitter
+      href: https://twitter.com/false9ry
+    - icon: linkedin
+      text: LinkedIn
+      href: https://linkedin.com/in/muratseyhan
+    - icon: github
+      text: Github
+      href: https://github.com/mseyhan
+og:
+  image: "https://mseyhan.github.io/images/profile.jpeg"
+  title: "Hakkında – Murat Seyhan"
+  description: "Hakkımda sayfasının Türkçe versiyonu."
+---
+
+Merhaba, ben **Murat Seyhan**. Bu sayfanın Türkçe versiyonu üzerinde çalışıyorum. İngilizce sürümdeki bilgilerimi kısa süre içinde buraya da taşıyacağım.
+
+Bu arada iletişim için sosyal medya bağlantılarımı kullanabilir veya İngilizce sayfaya göz atabilirsin.

@@ -1,0 +1,30 @@
+project:
+  type: website
+  output-dir: ../docs/tr
+
+website:
+  title: "Murat Seyhan, Data Scientist"
+  navbar:
+    right:
+      - about.qmd
+      - text: "EN"
+        href: "__LANG_TOGGLE__"
+      - icon: github
+        href: https://github.com/mseyhan
+      - icon: linkedin
+        href: https://linkedin.com/in/muratseyhan
+      - icon: twitter
+        href: https://twitter.com/false9ry
+  favicon: ../../favicon.ico
+  open-graph: true
+
+lang: tr
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    css: ../styles.css
+    include-in-header:
+      - ../lang-toggle.html
