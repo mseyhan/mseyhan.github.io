@@ -1,26 +1,26 @@
 {
-  "posts/post-with-code/index.qmd": {
-    "index.html": "757fed13"
-  },
-  "posts/welcome/index.qmd": {
-    "index.html": "426714c0"
+  "about.qmd": {
+    "about.html": "de8227fc"
   },
   "index.qmd": {
-    "index.html": "a392a31f"
+    "index.html": "84c710bb"
   },
-  "about.qmd": {
-    "about.html": "dfa9ee0f"
+  "tr/about.qmd": {
+    "about.html": "59e0de7e"
   },
-  "posts/welcome_2/index.qmd": {
-    "index.html": "47bb6729"
+  "tr/index.qmd": {
+    "index.html": "dec6c511"
   },
   "posts/regression_mean/regression_to_the_mean.ipynb": {
-    "regression_to_the_mean.html": "4caa3fe8"
-  },
-  "posts/regression_mean/try.ipynb": {
-    "try.html": "b16276e2"
+    "regression_to_the_mean.html": "7e15d1e0"
   },
   "posts/think_distributions/thinking_in_distributions.ipynb": {
-    "thinking_in_distributions.html": "62caafe0"
+    "thinking_in_distributions.html": "113d72a0"
+  },
+  "tr/posts/regression_mean/regression_to_the_mean.ipynb": {
+    "regression_to_the_mean.html": "261d7b68"
+  },
+  "tr/posts/think_distributions/thinking_in_distributions.ipynb": {
+    "thinking_in_distributions.html": "858a9a0e"
   }
 }

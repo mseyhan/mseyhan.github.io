@@ -1,5 +1,5 @@
 ---
-title: "Hakkında"
+title: "Hakkımda"
 image: ../profile.jpeg
 about:
   template: solana
@@ -15,7 +15,7 @@ about:
       href: https://github.com/mseyhan
 og:
   image: "https://mseyhan.github.io/images/profile.jpeg"
-  title: "Hakkında – Murat Seyhan"
+  title: "Hakkımda – Murat Seyhan"
   description: "Hakkımda sayfasının Türkçe versiyonu."
 ---
 

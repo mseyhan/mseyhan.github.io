@@ -3,8 +3,15 @@ project:
   output-dir: docs
   render:
     - "*.qmd"
-    - "posts/**"
-    - "!tr/**"
+    - "*.ipynb"
+    - "posts/**/*.qmd"
+    - "posts/**/*.ipynb"
+    - "tr/**/*.qmd"
+    - "tr/**/*.ipynb"
+  resources:
+    - assets/lang-toggle.js
+    - _includes/lang-toggle.html
+
 
 website:
   title: "Murat Seyhan, Data Scientist"
@@ -12,7 +19,7 @@ website:
     right:
       - about.qmd
       - text: "TR"
-        href: "__LANG_TOGGLE__"
+        href: "#"
       - icon: github
         href: https://github.com/mseyhan
       - icon: linkedin
@@ -29,6 +36,8 @@ format:
     theme:
       light: flatly
       dark: darkly
+    include-after-body:
+      - _includes/lang-toggle.html
     css: styles.css
     include-in-header:
       - lang-toggle.html
